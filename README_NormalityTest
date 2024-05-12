@@ -1,5 +1,6 @@
 The following subroutine (NormalityTest) make the computation of the data-driven test statistic of Section 3.4  in manuscript 
 "A NEW SET OF TOOLS FOR GOODNESS-OF-FIT VALIDATION " by G.Ducharme and T. Ledwina (archiv...).
+It requires Mathematica version 12.1 
 
 The parameters of this subroutine  are :
 
