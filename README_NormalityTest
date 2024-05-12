@@ -1,4 +1,4 @@
-The following subroutine make the computation of the data-driven test statistic of Section 3.4  in manuscript 
+The following subroutine (NormalityTest) make the computation of the data-driven test statistic of Section 3.4  in manuscript 
 "A NEW SET OF TOOLS FOR GOODNESS-OF-FIT VALIDATION " by G.Ducharme and T. Ledwina (archiv...).
 
 The parameters of this subroutine  are :
