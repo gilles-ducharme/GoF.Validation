@@ -2,7 +2,7 @@ This repertory contains the  programs to perform the computations described in  
 
 		"A NEW SET OF TOOLS FOR GOODNESS-OF-FIT VALIDATION " 
 
-by G.Ducharme and T. Ledwina (arXiv:2209.07295).
+by G.R. Ducharme and T. Ledwina (arXiv:2209.07295).
 
 These programs are written in the Mathematica language , version 12.1.
 
