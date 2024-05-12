@@ -1,0 +1,91 @@
+NormalityTest[sample_List, Sn_ : 4, \[Alpha]level_ : 0.05] := 
+  Module[{ tvec, n, sqrt\[Rho], 
+    F0invTvec, \[ScriptCapitalD]SMLE, \[ScriptL]starMLE, nbbunch, 
+    multipliers, \[ScriptCapitalP]kvec, \[ScriptCapitalP]Qtilde, 
+    ctilde, Qalpha, BCMR, \[Pi]vecBCMR, Lup\[ScriptCapitalT]n, 
+    Lup\[ScriptCapitalP]Qn, LookUpQuantile\[ScriptCapitalT]n},
+   
+   n = Length[sample];
+   Lup\[ScriptCapitalT]n = {{2.15`, 2.52`}, {2.33`, 2.72`}, {2.42`, 
+      2.83`}, {2.56`, 2.98`}, {2.66`, 3.09`}}; 
+   Lup\[ScriptCapitalP]Qn = {{{7.96, 10.48}, {8.10, 10.43}, {8.11, 
+       10.33}, {7.88, 10.01}, {7.78, 9.71}},  (* Sn = 4 *)
+     	{{8.43, 10.79}, {8.29, 10.67}, {8.32, 10.46}, {8.07, 
+       10.18}, {7.94, 9.88}},(* Sn = 5 *)
+     {{8.43, 10.86}, {8.31, 10.70}, {8.39, 10.57}, {8.15, 
+       10.24}, {7.95, 9.92}}};  (* Sn = 6 *)
+   
+   tvec = 
+    N[Flatten[Table[(2*i - 1)/2^(k + 1), {k, 0, Sn}, {i, 1, 2^k}]]];
+   F0invTvec = Quantile[NormalDistribution[], tvec];
+   nbbunch = FactorInteger[Length[tvec] + 1][[1, 2]]; 
+   multipliers = Table[2^i - 1, {i, 1, nbbunch}];
+   BCMR = 
+    n* (1 - (Sort[sample] . 
+           Table[(PDF[NormalDistribution[], 
+               If[i == 1, -50., 
+                Quantile[NormalDistribution[], (i - 1)/n]]] - 
+              PDF[NormalDistribution[], 
+               If[i == n, 50., 
+                Quantile[NormalDistribution[], i/n]]]), {i, 1, 
+             n}])^2/((n - 1)/n*Variance[sample]));
+   
+   
+   LookUpQuantile\[ScriptCapitalT]n = 
+    Interpolation[
+      Transpose[{{50, 100, 150, 300, 500}, 
+        Transpose[
+          Lup\[ScriptCapitalT]n][[Which[\[Alpha]level == 0.10, 
+           1, \[Alpha]level == 0.05, 2]]]}]][n];
+   ctilde = 
+    Interpolation[
+      Transpose[{{50, 100, 150, 300, 500}, 
+        Transpose[
+          Lup\[ScriptCapitalP]Qn[[Sn - 3]]][[Which[\[Alpha]level == 
+            0.10, 1, \[Alpha]level == 0.05, 2]]]}]][n];
+   
+   sqrt\[Rho] = 
+    Sqrt[tvec*(1 - tvec) - 
+      Map[PDF[NormalDistribution[0, 1], #] &, 
+        F0invTvec]^2 - (1/Sqrt[2]*
+         Map[PDF[NormalDistribution[0, 1], #] &, F0invTvec]*
+         F0invTvec)^2];
+   \[ScriptCapitalD]SMLE = 
+    EmpiricalDistribution[(sample - 
+        Mean[sample])/(StandardDeviation[sample]*Sqrt[(n - 1)/n])];
+   \[ScriptL]starMLE = (tvec - CDF[\[ScriptCapitalD]SMLE, F0invTvec])/
+     sqrt\[Rho];
+   \[ScriptCapitalP]kvec = 
+    Accumulate[
+     n*Table[Sum[\[ScriptL]starMLE[[j]]^2, {j, 2^(i - 1), 
+         2^i - 1}], {i, 1, nbbunch}]];
+   \[Pi]vecBCMR = 
+    Table[If[BCMR < LookUpQuantile\[ScriptCapitalT]n, 
+      multipliers[[j]]*
+       Which[\[Alpha]level == 0.10, 2.53, \[Alpha]level == 0.05, 
+        3.18], 1.5*multipliers[[j]]], {j, 1, nbbunch}];  
+   Qalpha = 
+    Min[Position[\[ScriptCapitalP]kvec - \[Pi]vecBCMR, 
+      Max[\[ScriptCapitalP]kvec - \[Pi]vecBCMR]]]; 
+   \[ScriptCapitalP]Qtilde = \[ScriptCapitalP]kvec[[Qalpha]];
+   Print["###################################################"];
+   Print[DisplayForm[SubscriptBox["\!\(\*
+StyleBox[\"\[ScriptCapitalP]\",\nFontSize->14]\)", 
+      "\!\(\*OverscriptBox[\(Q\), \(~\)]\)(" <> 
+       ToString[\[Alpha]level] <> ")"]], "(", 
+    Text[Style[ToString[Round[Mean[sample], 0.001]], FontSize -> 12]],
+     ",", Text[
+     Style[ToString[
+       Round[StandardDeviation[sample]*Sqrt[(n - 1)/n], 0.001]], 
+      FontSize -> 12]], ")", "  =  " , \[ScriptCapitalP]Qtilde, 
+    "  with  \!\(\*OverscriptBox[\(Q\), \(~\)]\)(" <> 
+     ToString[\[Alpha]level] <> ") = " , multipliers[[Qalpha]]];
+   Print[
+    "critical value : " <> "\!\(\*OverscriptBox[\(c\), \(~\)]\)(" <> 
+     ToString[n] <> ", " <> ToString[\[Alpha]level] <> ") = ", 
+    ctilde]; 
+   Print[ "Conclusion : ", 
+    If [\[ScriptCapitalP]Qtilde >= ctilde, "REJECT Gaussianity", 
+      "DO NOT REJECT Gaussianity"] <> "  at level \[Alpha] = ", 
+    ToString[\[Alpha]level*100.] <> "%" ];
+   Print["###################################################"];];
