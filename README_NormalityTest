@@ -1,0 +1,37 @@
+The following subroutine make the computation of the data-driven test statistic of Section 3.4  in manuscript 
+"A NEW SET OF TOOLS FOR GOODNESS-OF-FIT VALIDATION " by G.Ducharme and T. Ledwina (archiv...).
+
+The parameters of this subroutine  are :
+
+1)   sample : a list of n observations for which it is desired to test the null hypothesis of Gaussiannity. At the
+moment, 50 <= n <= 500.
+
+2) the value of S(n) : an integer in { 4, 5, 6}   (by default = 4). Note that increasing S(n) increases  slightly
+ the length in time of the calculations. A value S(n) \[Element] {4,5,6} is considered in the manuscript and should 
+be sufficient in most cases.
+
+3) \[Alpha] : the critical level of the test. At the moment \[Alpha] \[Element]  {0.05, 0.10} with, by default, \[Alpha] = 0.05.
+
+Warning : No provision has been made in the subroutine regarding possible errors in the parameters of the call of this subroutine. 
+Erroneous entries my cause inpredictable results. 
+
+The output are : 
+
+	1)  the value of Subscript[\[ScriptCapitalP], Overscript[Q, ~](\[Alpha])](Overscript[\[Beta], ~]), with Overscript[\[Beta], ~] = (Overscript[X, _], S) 
+	2) the value of Overscript[Q, ~](\[Alpha])
+	3) the critical level Overscript[c, ~](n, \[Alpha]), extrapolated from Table B.2  
+	4) the conclusion of the test : REJECT or DO NOT reject Gaussiannity  at level \[Alpha]
+	
+A generic call to this subroutine takes the form :
+
+>  NormalityTest[sample, S(n), \[Alpha]]		
+
+A example of call to this subroutine and its output  takes the form  
+(here sample = the wave records data of Section 3.5.1)
+
+>  NormalityTest[sample, 4, 0.05]	
+###################################################
+Subscript[\[ScriptCapitalP], Overscript[Q, ~](0.05)](3.788,2.377)  =  92.3959  with  Overscript[Q, ~](0.05) = 31
+critical value : Overscript[c, ~](66, 0.05) = 10.4711
+Conclusion : REJECT Gaussianity  at level \[Alpha] = 5.%
+###################################################
