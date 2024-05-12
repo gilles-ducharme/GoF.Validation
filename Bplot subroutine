@@ -1,0 +1,98 @@
+BPlot[sample_, SetOf\[ScriptCapitalJ]_List, side_List, Sn_ : 4, 
+   nbrep_ : 1000, level_ : 0.05] := 
+  Module[{boundsaccReg, \[ScriptCapitalJ], \[Mu]hat, \[Sigma]hat, 
+    sidesc\[ScriptCapitalJ], FourierCoeftab,
+    temp, extract, mktabpos, positionP, bars, grwave, test4, gr66, 
+    bplot, accreg\[ScriptCapitalJ], Fnhat, f0, F0inv},
+   
+   f0[x_] = PDF[NormalDistribution[], x];   
+   F0inv[y_] = Quantile[NormalDistribution[], y] ; 
+   
+   accreg\[ScriptCapitalJ] = 
+    Table[0, Length[SetOf\[ScriptCapitalJ]]]; 
+   FourierCoeftab = Table[0, {nbrep}];
+   
+   Do[  (* replication loop for critical value under H_0 *)
+    Fnhat = 
+     EmpiricalDistribution[
+      RandomVariate[NormalDistribution[], {Length[sample]}]];
+    {\[Mu]hat, \[Sigma]hat} = {Mean[Fnhat], 
+      StandardDeviation[Fnhat]};
+    FourierCoeftab[[i]] = 
+     N[Sqrt[Length[sample]]*
+       Table[(p - CDF[Fnhat, \[Sigma]hat*F0inv[p] + \[Mu]hat])/
+         Sqrt[p*(1 - p) - 
+           f0[F0inv[p]]^2 - (1/Sqrt[2]*f0[F0inv[p]]*F0inv[p])^2], {p, 
+         1/2^(Sn + 1), (2^(Sn + 1) - 1)/2^(Sn + 1), 
+         1/2^(Sn + 1)}]];, {i, 1, nbrep}];
+   
+   Fnhat = EmpiricalDistribution[sample];
+   {\[Mu]hat, \[Sigma]hat} = {Mean[sample], StandardDeviation[sample]};
+   bars = 
+    N[Sqrt[Length[sample]]*
+      Table[(p - CDF[Fnhat, \[Sigma]hat*F0inv[p] + \[Mu]hat])/
+        Sqrt[p*(1 - p) - 
+          f0[F0inv[p]]^2 - (1/Sqrt[2]*f0[F0inv[p]]*F0inv[p])^2], {p, 
+        1/2^(Sn + 1), (2^(Sn + 1) - 1)/2^(Sn + 1), 1/2^(Sn + 1)}]];
+   
+   boundsaccReg = {};
+   Do[
+    \[ScriptCapitalJ] = SetOf\[ScriptCapitalJ][[k]];
+    sidesc\[ScriptCapitalJ] = side[[k]];
+    mktabpos = Table[0, {nbrep}];
+     Do[   (* Loop for computation of acceptance regions *)
+     extract = 
+      Take[FourierCoeftab[[i]], {\[ScriptCapitalJ][[1]], \
+\[ScriptCapitalJ][[2]]}];
+     mktabpos[[i]] = {Min[extract], Max[extract]}, {i, 1, nbrep}];
+    AppendTo[boundsaccReg,
+     	Which[
+      sidesc\[ScriptCapitalJ] == "upper", {-4.5, 
+       Quantile[Transpose[mktabpos][[2]], 1 - level]},
+      		   
+      sidesc\[ScriptCapitalJ] ==  
+       "lower", {Quantile[Transpose[mktabpos][[1]], level], 4.5},
+      	             
+      True, {Quantile[Transpose[mktabpos][[1]], level/2], 
+       Quantile[Transpose[mktabpos][[2]], 1 - level/2]}]];,
+    {k, 1, Length[SetOf\[ScriptCapitalJ]]}];   (* 
+   End Loop for  computation of acceptance regions *)
+   
+   grwave = 
+    ListPlot[
+     Transpose[{Table[
+        p, {p, 1/2^(Sn + 1), (2^(Sn + 1) - 1)/2^(Sn + 1), 
+         1/2^(Sn + 1)}], bars}], FillingStyle -> Thickness[0.004], 
+     PlotStyle -> {Black, PointSize[0.001]}, Filling -> 0.025, 
+     FillingStyle -> Thickness[0.0075], 
+     PlotRange -> {{0, 1}, {-4.6, 4.0}}];
+   gr66 = Graphics[Text[Style["\!\(\*
+StyleBox[\"S\",\nFontSlant->\"Italic\"]\)(\!\(\*
+StyleBox[\"n\",\nFontSlant->\"Italic\"]\)) = " <> ToString[Sn], 
+       FontSize -> 19], {0.17, 3.5}]];
+   positionP = Graphics[Text[Style[p, FontSize -> 18], {0.5, -4.0}]];
+   test4 = 
+    Plot[{F0inv[level], F0inv[1 - level]}, {x, 0, 1}, 
+     PlotStyle -> {{Gray, Dashed}, {Gray, Dashed}}];
+   bplot = 
+    Show[{grwave, test4, gr66, positionP}, Frame -> True, 
+     FrameTicks -> {{Table[{x, 
+          Text[Style[ToString[x], FontSize -> 18]]}, {x, -4, 4, 1}], 
+        None}, {Partition[
+         Flatten[{{{0.0, Text[Style[0, FontSize -> 18]]}, 
+            Table[{x/10., 
+              Text[Style[DisplayForm[FractionBox[x, 10]], 
+                FontSize -> 18]]}, {x, 1, 9}], {1.0, 
+             Text[Style[1, FontSize -> 18]]}}}], 2], None}}];
+   Do[
+    accreg\[ScriptCapitalJ][[k]] = 
+     Plot[boundsaccReg[[k, 2]], {x, -1/2^(Sn + 2) + 
+        SetOf\[ScriptCapitalJ][[k, 1]]/2^(Sn + 1), 
+       SetOf\[ScriptCapitalJ][[k, 2]]/2^(Sn + 1) + 1/2^(Sn + 2)}, 
+      PlotStyle -> {LightGray}, Filling -> boundsaccReg[[k, 1]], 
+      FillingStyle -> Directive[Opacity[0.6], LightGray], 
+      PlotRange -> {{0, 1}, {-4.5, 4.8}}], {k, 1, 
+     Length[SetOf\[ScriptCapitalJ]]}];
+   Show[Flatten[{bplot, accreg\[ScriptCapitalJ]}], 
+    PlotRange -> {{0, 1}, {-4.5, 4.0}}]
+   ];
