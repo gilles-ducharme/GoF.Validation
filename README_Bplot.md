@@ -1,5 +1,5 @@
 The following subroutine (Bplot) make the computations in described in  manuscript 
-"A NEW SET OF TOOLS FOR GOODNESS-OF-FIT VALIDATION " by G.Ducharme and T. Ledwina (archiv...).
+"A NEW SET OF TOOLS FOR GOODNESS-OF-FIT VALIDATION " by G.Ducharme and T. Ledwina (archiv.2209.07295).
 It requires Mathematica version 12.1 
 
 Subroutine Bplot produces the Bplot in Figures 3.1, 3.2, 3.3, 3.4, A.1, A.2 and A.3 of the above manuscript.
